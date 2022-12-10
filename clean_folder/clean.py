@@ -40,11 +40,11 @@ def is_file_exists(i, dr):
         return file_path
     return i
 
-def is_fold_exists(i, dr):
+def is_fold_exists(i, dr: Path):
     if dr.exists():
         folder_sort(i, dr)
     else:
-        Path(dr).mkdir()
+        dr.mkdir()
         folder_sort(i, dr)
 
 def folder_sort(i, dr):
@@ -53,9 +53,10 @@ def folder_sort(i, dr):
     file_path = is_file_exists(new_file, dr)
     i.replace(file_path)
 
-def sort_file(path):
-    global fold
-    p = Path(path)
+def sort_file(path: Path, main_path: Path):
+    # global fold
+    p = path
+    fold = main_path
 
     for _ in range(2):
         for i in p.iterdir():
@@ -65,7 +66,7 @@ def sort_file(path):
                 flag = False
                 for f, suf in suffix_dict.items():
                     if i.suffix.lower() in suf:
-                        dr = Path(fold, f)
+                        dr = fold.joinpath(f)
                         is_fold_exists(i, dr)
                         flag = True
                     else:
@@ -75,7 +76,7 @@ def sort_file(path):
                     is_fold_exists(i, dr)
             elif i.is_dir():
                 if len(list(i.iterdir())) != 0:
-                    sort_file(i)
+                    sort_file(i, main_path)
                 else:
                     shutil.rmtree(i)
 
@@ -90,9 +91,9 @@ def sort_file(path):
                         continue
 
 
-def main(path):
-    sort_file(path)
-    p = Path(path)
+def main_sort(path):
+    sort_file(path, path)
+    p = path
 
     total_dict = collections.defaultdict(list)
     for item in p.iterdir():
@@ -115,7 +116,20 @@ def main(path):
     print()
 
 
-if __name__ != "__main__":
+def main():
+    path = None
+    try:
+        path = Path(sys.argv[1])
+    except IndexError:
+        print("Type path to folder")
+        return None
+        
+    if path.exists():
+        main_sort(path)
+    else:
+        print("Path is not exist")
+
+if __name__ == "__main__":
     path = sys.argv[1]
-    fold = Path(path)
-main(path)
+    # fold = Path(path)
+    main_sort(Path(path))
